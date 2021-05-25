@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { auth } from './../DataBase/FirebaseConfig';
-import { useFormComplete } from './../Context/FormCompleteContext';
-import { useAlert } from './../Context/AlertContext';
 import Alert from './Alert';
+import { useHistory } from 'react-router-dom';
 
 import {
 	HeaderContainer,
@@ -20,14 +19,10 @@ import {
 const RegisterScreen = () => {
 	const [register, setRegister] = useState({ email: '', password: '', password2: '' });
 
-	const { formComplete, setFormComplete } = useFormComplete();
-	const { alert, setAlert } = useAlert();
-
-	useEffect(() => {
-		setFormComplete(false);
-
-		return setFormComplete(false);
-	}, [setFormComplete]);
+	const [formComplete, setFormComplete] = useState(false);
+	const [alertState, setAlertState] = useState(false);
+	const [alert, setAlert] = useState({ type: '', message: '' });
+	const history = useHistory();
 
 	const expressions = {
 		email: /^[a-zA-Z0-9.-_+]+@[a-zA-Z]+.+[a-zA-Z]$/,
@@ -55,27 +50,30 @@ const RegisterScreen = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		setAlertState(false);
 
 		if (formComplete) {
 			try {
 				const { user } = await auth.createUserWithEmailAndPassword(register.email, register.password);
 				user.sendEmailVerification();
 
+				history.replace('/verify-email');
+
 				setFormComplete(false);
 			} catch (error) {
 				if (error.code === 'auth/email-already-in-use') {
+					setAlertState(true);
 					setAlert({
 						type: 'error',
 						message: error.message,
-						active: true,
 					});
 				}
 			}
 		} else {
+			setAlertState(true);
 			setAlert({
 				type: 'error',
 				message: 'Please complete the register form correclty',
-				active: true,
 			});
 		}
 	};
@@ -126,7 +124,12 @@ const RegisterScreen = () => {
 					</TextContainer>
 				</Form>
 			</FormContainer>
-			<Alert alert={alert} setAlert={setAlert} />
+			<Alert
+				alertState={alertState}
+				setAlertState={setAlertState}
+				type={alert.type}
+				message={alert.message}
+			/>
 		</>
 	);
 };

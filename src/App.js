@@ -2,8 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
 import { AuthProvider } from './Context/AuthContext';
-import { AlertProvider } from './Context/AlertContext';
-import { FormCompleteProvider } from './Context/FormCompleteContext';
 import AppRouter from './Routes/AppRouter';
 import favicon from './Img/favicon.png';
 
@@ -18,14 +16,10 @@ const App = () => {
 			</Helmet>
 
 			<AuthProvider>
-				<FormCompleteProvider>
-					<AlertProvider>
-						<Container>
-							<AppRouter />
-						</Container>
-						<Background />
-					</AlertProvider>
-				</FormCompleteProvider>
+				<Container>
+					<AppRouter />
+				</Container>
+				<Background />
 			</AuthProvider>
 		</>
 	);

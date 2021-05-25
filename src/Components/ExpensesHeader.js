@@ -14,7 +14,7 @@ const ExpensesHeader = ({ firstLink, firstRoute, secondLink, secondRoute }) => {
 
 	const logOut = async () => {
 		await auth.signOut();
-		history.push('/login');
+		history.replace('/login');
 	};
 	return (
 		<>

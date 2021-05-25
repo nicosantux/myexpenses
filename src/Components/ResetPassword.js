@@ -2,24 +2,22 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import ExpensesHeader from './ExpensesHeader';
 import { useAuth } from './../Context/AuthContext';
-import { useAlert } from './../Context/AlertContext';
-import { useFormComplete } from './../Context/FormCompleteContext';
 import Alert from './Alert';
 
 import { ExpensesContainer } from './../Elements/ExpensesElements';
 import { FormContainer, Form, Input, BtnContainer, Button } from './../Elements/FormElements';
 
 const ResetPassword = () => {
-	const [resetPassword, setResetPassword] = useState({ password: '', password2: '' });
-
 	const { user } = useAuth();
-	const { alert, setAlert } = useAlert();
-	const { formComplete, setFormComplete } = useFormComplete();
+	const [resetPassword, setResetPassword] = useState({ password: '', password2: '' });
+	const [alertState, setAlertState] = useState(false);
+	const [alert, setAlert] = useState({ type: '', message: '' });
+	const [formComplete, setFormComplete] = useState(false);
 
-	const expression = /^[\Sa-zA-z0-9.-_+#$%&/]{6,18}$/;
+	const password = /^[\Sa-zA-z0-9.-_+#$%&/]{6,18}$/;
 
 	const validateInputs = () => {
-		if (expression.test(resetPassword.password) && resetPassword.password === resetPassword.password2) {
+		if (password.test(resetPassword.password) && resetPassword.password2 === resetPassword.password) {
 			setFormComplete(true);
 		} else {
 			setFormComplete(false);
@@ -35,15 +33,16 @@ const ResetPassword = () => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		setAlertState(false);
 
 		if (formComplete) {
 			user
 				.updatePassword(resetPassword.password)
 				.then(() => {
+					setAlertState(true);
 					setAlert({
 						type: 'success',
 						message: 'Password changed successfully.',
-						active: true,
 					});
 
 					setResetPassword({ password: '', password2: '' });
@@ -53,28 +52,28 @@ const ResetPassword = () => {
 				.catch((error) => {
 					switch (error.code) {
 						case 'auth/requires-recent-login':
+							setAlertState(true);
 							setAlert({
 								type: 'error',
 								message:
 									'This operation is sensitive and requires recent au…ation. Log in again before retrying this request.',
-								active: true,
 							});
 							break;
 
 						default:
+							setAlertState(true);
 							setAlert({
 								type: 'error',
 								message: 'There was an error changing your password. Please try again.',
-								active: true,
 							});
 							break;
 					}
 				});
 		} else {
+			setAlertState(true);
 			setAlert({
 				type: 'error',
 				message: 'Please complete the change password form correctly.',
-				active: true,
 			});
 		}
 	};
@@ -111,7 +110,12 @@ const ResetPassword = () => {
 					</Form>
 				</FormContainer>
 			</ExpensesContainer>
-			<Alert alert={alert} setAlert={setAlert} />
+			<Alert
+				alertState={alertState}
+				setAlertState={setAlertState}
+				type={alert.type}
+				message={alert.message}
+			/>
 		</>
 	);
 };

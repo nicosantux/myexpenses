@@ -5,8 +5,6 @@ import { useAuth } from './../Context/AuthContext';
 import isValid from 'date-fns/isValid';
 import DayPicker from './DayPicker';
 import Alert from './Alert';
-import { useAlert } from './../Context/AlertContext';
-import { useFormComplete } from './../Context/FormCompleteContext';
 import fromUnixTime from 'date-fns/fromUnixTime';
 import { useHistory } from 'react-router-dom';
 
@@ -15,8 +13,9 @@ import { BtnContainer, Button } from './../Elements/FormElements';
 
 const AddExpenseForm = ({ expense }) => {
 	const { user } = useAuth();
-	const { formComplete, setFormComplete } = useFormComplete();
-	const { alert, setAlert } = useAlert();
+	const [formComplete, setFormComplete] = useState(false);
+	const [alertState, setAlertState] = useState(false);
+	const [alert, setAlert] = useState({ type: '', message: '' });
 
 	const history = useHistory();
 
@@ -30,7 +29,6 @@ const AddExpenseForm = ({ expense }) => {
 	});
 
 	useEffect(() => {
-		setFormComplete(false);
 		if (expense) {
 			if (expense.uid === user.uid) {
 				setFormComplete(true);
@@ -43,13 +41,14 @@ const AddExpenseForm = ({ expense }) => {
 					uid: user.uid,
 				});
 			} else {
-				history.push('/');
+				history.replace('/');
 			}
 		}
 
 		return () => {
 			setFormComplete(false);
-			setAlert({ type: '', message: '', active: false });
+			setAlertState(false);
+			setAlert({ type: '', message: '' });
 			setExpenseForm({
 				description: '',
 				amount: '',
@@ -95,24 +94,25 @@ const AddExpenseForm = ({ expense }) => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		setAlertState(false);
 
 		if (expense) {
 			if (formComplete) {
 				editExpense(expenseForm, expense);
-
+				setAlertState(true);
 				setAlert({
 					type: 'success',
 					message: 'Expense edited successfully.',
-					active: true,
 				});
 			} else {
+				setAlertState(true);
 				setAlert({
 					type: 'error',
 					message: 'Please complete the edit expense form correctly.',
-					active: true,
 				});
 			}
 		} else {
+			setAlertState(false);
 			if (formComplete) {
 				addExpense(expenseForm);
 
@@ -124,19 +124,18 @@ const AddExpenseForm = ({ expense }) => {
 					date: new Date(),
 					uid: user.uid,
 				});
-
+				setAlertState(true);
 				setAlert({
 					type: 'success',
 					message: 'Expense added successfully.',
-					active: true,
 				});
 
 				setFormComplete(false);
 			} else {
+				setAlertState(true);
 				setAlert({
 					type: 'error',
 					message: 'Please complete the add expense form correctly.',
-					active: true,
 				});
 			}
 		}
@@ -189,7 +188,12 @@ const AddExpenseForm = ({ expense }) => {
 				</Form>
 			</ExpensesContainer>
 
-			<Alert alert={alert} setAlert={setAlert} />
+			<Alert
+				alertState={alertState}
+				setAlertState={setAlertState}
+				type={alert.type}
+				message={alert.message}
+			/>
 		</>
 	);
 };
