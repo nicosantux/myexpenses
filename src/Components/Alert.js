@@ -1,65 +1,74 @@
-import React from 'react';
-import { useEffect } from 'react/cjs/react.development';
+import React, { useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { theme } from './../theme';
+import { theme } from '../theme';
 
-const alertAnimation = keyframes`
+const slideDown = keyframes`
     0% {
-        transform: translateY(-1.5rem);
+        transform: translateY(-1.25rem); /* 20px */
         opacity: 0;
     }
-
-    25%{
-        transform: translateY(1.5rem);
+ 
+    10% {
+        transform: translateY(1.25rem);
         opacity: 1;
     }
-
-    75%{
-        transform: translateY(1.5rem);
+    
+    90% {
+        transform: translateY(1.25rem);
         opacity: 1;
     }
-
-    100%{
-        transform: translateY(-1.5rem);
+ 
+    100% {
+        transform: translateY(1.25rem);
         opacity: 0;
     }
 `;
 
 const AlertContainer = styled.div`
 	align-items: center;
-	animation: ${alertAnimation} 4s ease-in-out forwards;
-	background: ${(props) => (props.type === 'success' ? `${theme.successColor}` : `${theme.errorColor}`)};
-	border-radius: 0.5rem;
+	animation: ${slideDown} 4s ease-in-out forwards;
 	display: flex;
 	justify-content: center;
+	left: 0;
 	position: fixed;
-	width: fit-content;
-	z-index: 100;
+	top: 1.25rem;
+	width: 100%;
+	z-index: 1000;
 
 	p {
-		color: white;
+		background: ${(props) => {
+			if (props.type === 'error') {
+				return theme.errorColor;
+			} else if (props.type === 'success') {
+				return theme.successColor;
+			} else {
+				return '#000';
+			}
+		}};
+		border-radius: 1rem;
+		box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+		color: #fff;
 		padding: 1rem 2rem;
+		text-align: center;
 	}
 `;
 
-const Alert = ({ alert, setAlert }) => {
-	const { type, message, active } = alert;
-
+const Alert = ({ type, message, alertState, setAlertState }) => {
 	useEffect(() => {
 		let time;
 
-		if (active) {
+		if (alertState === true) {
 			time = setTimeout(() => {
-				setAlert({ type: '', message: '', active: false });
+				setAlertState(false);
 			}, 4000);
 		}
 
 		return () => clearTimeout(time);
-	}, [active, setAlert]);
+	}, [alertState, setAlertState]);
 
 	return (
 		<>
-			{active && (
+			{alertState && (
 				<AlertContainer type={type}>
 					<p>{message}</p>
 				</AlertContainer>

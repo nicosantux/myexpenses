@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { auth } from './../DataBase/FirebaseConfig';
 import Alert from './Alert';
-import { useAlert } from './../Context/AlertContext';
-import { useFormComplete } from './../Context/FormCompleteContext';
+import { useHistory } from 'react-router-dom';
 
 import {
 	HeaderContainer,
@@ -19,20 +18,15 @@ import {
 
 const LoginScreen = () => {
 	const [loginCredentials, setLoginCredentials] = useState({ email: '', password: '' });
-
-	const { formComplete, setFormComplete } = useFormComplete();
-	const { alert, setAlert } = useAlert();
+	const [formComplete, setFormComplete] = useState(false);
+	const [alertState, setAlertState] = useState(false);
+	const [alert, setAlert] = useState({ type: '', message: '' });
+	const history = useHistory();
 
 	const expressions = {
 		email: /^[a-zA-Z0-9.-_+]+@[a-zA-Z]+.+[a-zA-Z]$/,
 		password: /^[\Sa-zA-z0-9.-_+#$%&/]{6,18}$/, // 6 a 18 characters includes. .-_+#$%&
 	};
-
-	useEffect(() => {
-		setFormComplete(false);
-
-		return setFormComplete(false);
-	}, [setFormComplete]);
 
 	const validateInputs = () => {
 		if (
@@ -54,47 +48,53 @@ const LoginScreen = () => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		setAlertState(false);
 
 		if (formComplete) {
-			auth.signInWithEmailAndPassword(loginCredentials.email, loginCredentials.password).catch((error) => {
-				console.log(error);
-				switch (error.code) {
-					case 'auth/user-not-found':
-						setAlert({
-							type: 'error',
-							message: 'There is no user record corresponding to this identifier.',
-							active: true,
-						});
-						break;
-					case 'auth/wrong-password':
-						setAlert({
-							type: 'error',
-							message: 'The password is invalid or the user does not have a password',
-							active: true,
-						});
-						break;
-					case 'auth/network-request-failed':
-						setAlert({
-							type: 'error',
-							message:
-								'A network error (such as timeout, interrupted connection or unreachable host) has occurred.',
-							active: true,
-						});
-						break;
-					default:
-						setAlert({
-							type: 'error',
-							message: 'There was a problem to log in. Please check your credentials.',
-							active: true,
-						});
-						break;
-				}
-			});
+			auth
+				.signInWithEmailAndPassword(loginCredentials.email, loginCredentials.password)
+				.then(() => {
+					history.replace('/');
+				})
+				.catch((error) => {
+					alert(error.code);
+					switch (error.code) {
+						case 'auth/user-not-found':
+							setAlertState(true);
+							setAlert({
+								type: 'error',
+								message: 'There is no user record corresponding to this identifier.',
+							});
+							break;
+						case 'auth/wrong-password':
+							setAlertState(true);
+							setAlert({
+								type: 'error',
+								message: 'The password is invalid or the user does not have a password',
+							});
+							break;
+						case 'auth/network-request-failed':
+							setAlertState(true);
+							setAlert({
+								type: 'error',
+								message:
+									'A network error (such as timeout, interrupted connection or unreachable host) has occurred.',
+							});
+							break;
+						default:
+							setAlertState(true);
+							setAlert({
+								type: 'error',
+								message: 'There was a problem to log in. Please check your credentials.',
+							});
+							break;
+					}
+				});
 		} else {
+			setAlertState(true);
 			setAlert({
 				type: 'error',
 				message: 'Please complete the login form correctly',
-				active: true,
 			});
 		}
 	};
@@ -139,7 +139,12 @@ const LoginScreen = () => {
 				</Form>
 			</FormContainer>
 
-			<Alert alert={alert} setAlert={setAlert} />
+			<Alert
+				alertState={alertState}
+				setAlertState={setAlertState}
+				type={alert.type}
+				message={alert.message}
+			/>
 		</>
 	);
 };

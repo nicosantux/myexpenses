@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { auth } from '../DataBase/FirebaseConfig';
-import { useFormComplete } from './../Context/FormCompleteContext';
 import Alert from './Alert';
-import { useAlert } from './../Context/AlertContext';
 
 import {
 	HeaderContainer,
@@ -19,23 +17,18 @@ import {
 
 const ForgotPassword = () => {
 	const [resetPassword, setResetPassword] = useState('');
-	const { formComplete, setFormComplete } = useFormComplete();
-	const { alert, setAlert } = useAlert();
-
-	const emailExpression = /^[a-zA-Z0-9.-_+]+@[a-zA-Z]+.+[a-zA-Z]$/;
-
-	useEffect(() => {
-		setFormComplete(false);
-
-		return setFormComplete(false);
-	}, [setFormComplete]);
+	const [formComplete, setFormComplete] = useState(false);
+	const [alertState, setAlertState] = useState(false);
+	const [alert, setAlert] = useState({ type: '', message: '' });
 
 	const handleChange = (e) => {
 		setResetPassword(e.target.value);
 	};
 
+	const email = /^[a-zA-Z0-9.-_+]+@[a-zA-Z]+.+[a-zA-Z]$/;
+
 	const validateInputs = () => {
-		if (emailExpression.test(resetPassword)) {
+		if (email.test(resetPassword)) {
 			setFormComplete(true);
 		} else {
 			setFormComplete(false);
@@ -44,30 +37,31 @@ const ForgotPassword = () => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		setAlertState(false);
 		if (formComplete) {
 			auth
 				.sendPasswordResetEmail(resetPassword)
 				.then(() => {
 					setResetPassword('');
 					setFormComplete(false);
+					setAlertState(true);
 					setAlert({
 						type: 'success',
 						message: 'An email has been sent to change your password.',
-						active: true,
 					});
 				})
-				.catch((error) => {
+				.catch(() => {
+					setAlertState(true);
 					setAlert({
 						type: 'error',
 						message: 'There is no user with this email.',
-						active: true,
 					});
 				});
 		} else {
+			setAlertState(true);
 			setAlert({
 				type: 'error',
 				message: 'Please complete the reset password form.',
-				active: true,
 			});
 		}
 	};
@@ -102,7 +96,12 @@ const ForgotPassword = () => {
 				</Form>
 			</FormContainer>
 
-			<Alert alert={alert} setAlert={setAlert} />
+			<Alert
+				alertState={alertState}
+				setAlertState={setAlertState}
+				type={alert.type}
+				message={alert.message}
+			/>
 		</>
 	);
 };
