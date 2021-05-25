@@ -1,6 +1,6 @@
 {
 	"name": "myexpenses",
-	"homepage": "https://nicosantux.github.io/myexpenses",
+	"homepage": "https://nicosantux.github.io/myexpenses/",
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
