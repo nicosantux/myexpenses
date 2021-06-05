@@ -79,8 +79,7 @@ const AddExpenseForm = ({ expense }) => {
 			setFormComplete(true);
 		} else if (
 			expenseForm.description !== '' &&
-			expenseForm.amount !== '' &&
-			expenseForm.amount !== '0' &&
+			Number(expenseForm.amount) > 0 &&
 			expenseForm.installments !== '' &&
 			expenseForm.installments !== '0' &&
 			Number(expenseForm.installments) <= 24 &&

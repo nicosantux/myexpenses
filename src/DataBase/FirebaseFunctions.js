@@ -2,6 +2,7 @@ import { db } from './../DataBase/FirebaseConfig';
 import getUnixTime from 'date-fns/getUnixTime';
 import subMonths from 'date-fns/subMonths';
 import addMonths from 'date-fns/addMonths';
+import startOfMonth from 'date-fns/startOfMonth';
 
 const addExpense = (expense) => {
 	const { description, category, date, uid } = expense;
@@ -37,7 +38,7 @@ const addExpense = (expense) => {
 						...firstInstallment,
 						currentInstallment: Number(`${i + 1}`),
 						installmentsDescription: `${i + 1} of ${installments}`,
-						date: getUnixTime(addMonths(date, i)),
+						date: getUnixTime(startOfMonth(addMonths(date, i))),
 						idRef: docRef.id,
 					};
 					db.collection('expenses').add(restInstallments);
