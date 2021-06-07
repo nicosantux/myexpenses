@@ -57,7 +57,6 @@ const LoginScreen = () => {
 					history.replace('/');
 				})
 				.catch((error) => {
-					alert(error.code);
 					switch (error.code) {
 						case 'auth/user-not-found':
 							setAlertState(true);
